@@ -1445,7 +1445,20 @@
     inputWobble.addEventListener("input", (e) => {
       CONFIG.wobble = parseFloat(e.target.value);
       shared.uWobble.value = CONFIG.wobble;
-      valWobble.textContent = `${CONFIG.wobble}×`;
+      valWobble.textContent = `${CONFIG.wobble.toFixed(1)}×`;
+    });
+
+    const btnRandomThreads = document.getElementById("btnRandomThreads");
+    btnRandomThreads?.addEventListener("click", () => {
+      const counts = [14, 18, 22, 26, 30, 36, 42, 48];
+      CONFIG.threads = counts[Math.floor(Math.random() * counts.length)];
+      CONFIG.wobble = Math.round((0.6 + Math.random() * 4.4) * 10) / 10;
+      inputThreadCount.value = CONFIG.threads;
+      valThreadCount.textContent = CONFIG.threads;
+      inputWobble.value = CONFIG.wobble;
+      valWobble.textContent = `${CONFIG.wobble.toFixed(1)}×`;
+      shared.uWobble.value = CONFIG.wobble;
+      rebuildStrip();
     });
 
     // Pixel Params
@@ -1466,8 +1479,19 @@
     });
 
     const btnRandomPixel = document.getElementById("btnRandomPixel");
-    btnRandomPixel.addEventListener("click", () => {
-      CONFIG.pixelSeed = Math.random() * 1000.0;
+    btnRandomPixel?.addEventListener("click", () => {
+      const sizes = [8, 12, 16, 20, 24, 28, 32, 40];
+      CONFIG.pixelSize = sizes[Math.floor(Math.random() * sizes.length)];
+      CONFIG.pixelScatter = Math.round((20 + Math.random() * 65) / 5) * 5;
+      CONFIG.pixelSeed = Math.round(Math.random() * 1000.0 * 100) / 100;
+
+      inputPixelSize.value = CONFIG.pixelSize;
+      valPixelSize.textContent = `${CONFIG.pixelSize}px`;
+      inputPixelScatter.value = CONFIG.pixelScatter;
+      valPixelScatter.textContent = `${CONFIG.pixelScatter}%`;
+
+      shared.uPixelSize.value = CONFIG.pixelSize;
+      shared.uPixelScatter.value = CONFIG.pixelScatter;
       shared.uPixelSeed.value = CONFIG.pixelSeed;
     });
 
@@ -1497,8 +1521,22 @@
     });
 
     const btnRandomLiquid = document.getElementById("btnRandomLiquid");
-    btnRandomLiquid.addEventListener("click", () => {
-      CONFIG.liquidSeed = Math.random() * 1000.0;
+    btnRandomLiquid?.addEventListener("click", () => {
+      CONFIG.liquidFreq = Math.round((2.0 + Math.random() * 8.0) * 2) / 2;
+      CONFIG.liquidStrength = Math.round((0.6 + Math.random() * 1.8) * 10) / 10;
+      CONFIG.liquidSpeed = Math.round((0.8 + Math.random() * 1.6) * 10) / 10;
+      CONFIG.liquidSeed = Math.round(Math.random() * 1000.0 * 100) / 100;
+
+      inputLiquidFreq.value = CONFIG.liquidFreq;
+      valLiquidFreq.textContent = CONFIG.liquidFreq.toFixed(1);
+      inputLiquidStrength.value = CONFIG.liquidStrength;
+      valLiquidStrength.textContent = `${CONFIG.liquidStrength.toFixed(1)}×`;
+      inputLiquidSpeed.value = CONFIG.liquidSpeed;
+      valLiquidSpeed.textContent = `${CONFIG.liquidSpeed.toFixed(1)}×`;
+
+      shared.uLiquidFreq.value = CONFIG.liquidFreq;
+      shared.uLiquidStrength.value = CONFIG.liquidStrength;
+      shared.uLiquidSpeed.value = CONFIG.liquidSpeed;
       shared.uLiquidSeed.value = CONFIG.liquidSeed;
     });
 

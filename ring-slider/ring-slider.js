@@ -49,6 +49,7 @@
 
     threads: 26,
     wobble: 1.0,
+    threadsSeed: 13.37,
 
     liquidFreq: 6.0,
     liquidStrength: 1.2,
@@ -144,6 +145,7 @@
 
     uniform float uThreads;
     uniform float uWobble;
+    uniform float uThreadsSeed;
 
     uniform float uLiquidFreq;
     uniform float uLiquidStrength;
@@ -276,7 +278,7 @@
         float threadFrac = fract(threadCoord);
         float rim = abs(threadFrac - 0.5) * 2.0;
 
-        float rnd = hash21(vec2(threadIdx, uSeed));
+        float rnd = hash21(vec2(threadIdx, uSeed * 13.37 + uThreadsSeed * 7.19));
         float wave = sin(vUv.x * 12.0 + uTime * 2.5 + rnd * 6.28) * 0.02 * uWobble * tNorm;
         vec2 threadUv = sampleUv + vec2(0.0, wave);
 
@@ -369,8 +371,8 @@
       }
       else if (uEffectMode == 3) {
         // ===== MODE 3: LIQUID MELT / ЖИДКОСТЬ =====
-        float lTime = uTime * uLiquidSpeed + uLiquidSeed * 10.0;
-        vec2 fP = vUv * uLiquidFreq;
+        float lTime = uTime * uLiquidSpeed + uLiquidSeed * 2.5;
+        vec2 fP = vUv * uLiquidFreq + vec2(sin(uLiquidSeed * 0.73), cos(uLiquidSeed * 0.91)) * 3.0;
 
         float wave1 = sin(fP.y * 3.14 + lTime) * cos(fP.x * 2.2 - lTime * 0.8);
         float wave2 = cos(fP.x * 3.14 + lTime * 1.3) * sin(fP.y * 2.2 + lTime * 0.5);
@@ -449,6 +451,7 @@
     uPixelSeed:      { value: 42.1337 },
     uThreads:        { value: 26.0 },
     uWobble:         { value: 1.0 },
+    uThreadsSeed:    { value: 13.37 },
     uLiquidFreq:     { value: 6.0 },
     uLiquidStrength: { value: 1.2 },
     uLiquidSpeed:    { value: 1.5 },
@@ -656,6 +659,7 @@
           uPixelSeed:      sharedUniforms.uPixelSeed,
           uThreads:        sharedUniforms.uThreads,
           uWobble:         sharedUniforms.uWobble,
+          uThreadsSeed:    sharedUniforms.uThreadsSeed,
           uLiquidFreq:     sharedUniforms.uLiquidFreq,
           uLiquidStrength: sharedUniforms.uLiquidStrength,
           uLiquidSpeed:    sharedUniforms.uLiquidSpeed,
@@ -1180,11 +1184,14 @@
     sharedUniforms.uPixelSize.value = CONFIG.pixelSize;
     sharedUniforms.uPixelScatter.value = CONFIG.pixelScatter;
     sharedUniforms.uPixelWobble.value = CONFIG.pixelWobble !== undefined ? CONFIG.pixelWobble : 1.0;
+    sharedUniforms.uPixelSeed.value = CONFIG.pixelSeed;
     sharedUniforms.uThreads.value = CONFIG.threads;
     sharedUniforms.uWobble.value = CONFIG.wobble;
+    sharedUniforms.uThreadsSeed.value = CONFIG.threadsSeed || 13.37;
     sharedUniforms.uLiquidFreq.value = CONFIG.liquidFreq;
     sharedUniforms.uLiquidStrength.value = CONFIG.liquidStrength;
     sharedUniforms.uLiquidSpeed.value = CONFIG.liquidSpeed;
+    sharedUniforms.uLiquidSeed.value = CONFIG.liquidSeed;
     sharedUniforms.uFadeEnable.value = CONFIG.fadeEnable ? 1.0 : 0.0;
     sharedUniforms.uFadeDepth.value = CONFIG.fadeDepth / 100.0;
     sharedUniforms.uFadeLeft.value = CONFIG.fadeLeft ? 1.0 : 0.0;
@@ -1628,13 +1635,24 @@
   inputPixelWobble?.addEventListener("input", (e) => syncPixelWobble(Number(e.target.value)));
   ptPixelWobble?.addEventListener("input", (e) => syncPixelWobble(Number(e.target.value)));
 
-  function randomizePixelSeed() {
-    CONFIG.pixelSeed = Math.random() * 1000.0;
-    sharedUniforms.uPixelSeed.value = CONFIG.pixelSeed;
-    showToast("🎲 Новое распределение пикселей");
+  function randomizePixel() {
+    const sizes = [8, 12, 16, 20, 24, 28, 32, 40];
+    const newSize = sizes[Math.floor(Math.random() * sizes.length)];
+    const newScatter = Math.round((20 + Math.random() * 65) / 5) * 5;
+    const newWobble = Math.round((0.5 + Math.random() * 5.0) * 10) / 10;
+    const newSeed = Math.round(Math.random() * 1000.0 * 100) / 100;
+
+    CONFIG.pixelSeed = newSeed;
+    sharedUniforms.uPixelSeed.value = newSeed;
+
+    syncPixelSize(newSize);
+    syncPixelScatter(newScatter);
+    syncPixelWobble(newWobble);
+
+    showToast(`🎲 Пиксели: ${newSize}px, разброс: ${newScatter}%, колебания: ${newWobble.toFixed(1)}×`);
   }
-  document.getElementById("btnRandomPixel")?.addEventListener("click", randomizePixelSeed);
-  document.getElementById("btnRandomPixelTop")?.addEventListener("click", randomizePixelSeed);
+  document.getElementById("btnRandomPixel")?.addEventListener("click", randomizePixel);
+  document.getElementById("btnRandomPixelTop")?.addEventListener("click", randomizePixel);
 
   // --- Threads Params (Synced between Sidebar & Topbar) ---
   const inputThreadCount = document.getElementById("inputThreadCount");
@@ -1668,6 +1686,23 @@
   }
   inputWobble?.addEventListener("input", (e) => syncWobble(Number(e.target.value)));
   ptWobble?.addEventListener("input", (e) => syncWobble(Number(e.target.value)));
+
+  function randomizeThreads() {
+    const counts = [14, 18, 22, 26, 30, 36, 42, 48];
+    const newThreads = counts[Math.floor(Math.random() * counts.length)];
+    const newWobble = Math.round((0.6 + Math.random() * 4.4) * 10) / 10;
+    const newSeed = Math.round(Math.random() * 1000.0 * 100) / 100;
+
+    CONFIG.threadsSeed = newSeed;
+    sharedUniforms.uThreadsSeed.value = newSeed;
+
+    syncThreads(newThreads);
+    syncWobble(newWobble);
+
+    showToast(`🎲 Нити: ${newThreads}, колебания: ${newWobble.toFixed(1)}×`);
+  }
+  document.getElementById("btnRandomThreads")?.addEventListener("click", randomizeThreads);
+  document.getElementById("btnRandomThreadsTop")?.addEventListener("click", randomizeThreads);
 
   // --- Liquid Params (Synced between Sidebar & Topbar) ---
   const inputLiquidFreq = document.getElementById("inputLiquidFreq");
@@ -1718,13 +1753,23 @@
   inputLiquidSpeed?.addEventListener("input", (e) => syncLiquidSpeed(Number(e.target.value)));
   ptLiquidSpeed?.addEventListener("input", (e) => syncLiquidSpeed(Number(e.target.value)));
 
-  function randomizeLiquidSeed() {
-    CONFIG.liquidSeed = Math.random() * 1000.0;
-    sharedUniforms.uLiquidSeed.value = CONFIG.liquidSeed;
-    showToast("🎲 Новая случайная фаза жидкости");
+  function randomizeLiquid() {
+    const newFreq = Math.round((2.0 + Math.random() * 8.0) * 2) / 2;
+    const newStrength = Math.round((0.6 + Math.random() * 1.8) * 10) / 10;
+    const newSpeed = Math.round((0.8 + Math.random() * 1.6) * 10) / 10;
+    const newSeed = Math.round(Math.random() * 1000.0 * 100) / 100;
+
+    CONFIG.liquidSeed = newSeed;
+    sharedUniforms.uLiquidSeed.value = newSeed;
+
+    syncLiquidFreq(newFreq);
+    syncLiquidStrength(newStrength);
+    syncLiquidSpeed(newSpeed);
+
+    showToast(`🎲 Жидкость: частота ${newFreq.toFixed(1)}, сила ${newStrength.toFixed(1)}×, скорость ${newSpeed.toFixed(1)}×`);
   }
-  document.getElementById("btnRandomLiquid")?.addEventListener("click", randomizeLiquidSeed);
-  document.getElementById("btnRandomLiquidTop")?.addEventListener("click", randomizeLiquidSeed);
+  document.getElementById("btnRandomLiquid")?.addEventListener("click", randomizeLiquid);
+  document.getElementById("btnRandomLiquidTop")?.addEventListener("click", randomizeLiquid);
 
   // --- Screen-Edge Erase Controls ---
   const chkFadeLeft = document.getElementById("chkFadeLeft");

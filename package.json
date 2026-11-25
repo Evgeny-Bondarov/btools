@@ -1,6 +1,6 @@
 {
   "name": "btools",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "btools — WebGL & 3D Interactive Design Ecosystem (Slider Studio & Ring 3D Slider)",
   "main": "server.js",
   "scripts": {
