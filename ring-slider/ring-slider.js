@@ -71,6 +71,8 @@
     panMediaMode: false
   };
 
+  window.CONFIG = CONFIG; // Exposed for debugging & inspection
+
   const DEFAULT_IMAGES = [
     "./img/motion_blur_portrait_01.jpg",
     "./img/motion_blur_portrait_02.jpg",
@@ -1283,6 +1285,35 @@
     gizmoCircle.classList.add("hovered");
     gizmoRect.classList.add("hovered");
     updateTransformBadgePos(e.clientX, e.clientY, `${Math.round(CONFIG.gizmoRx)}×${Math.round(CONFIG.gizmoRy)}px`, false);
+
+    // Dynamic cursor depending on hover location on frame:
+    const isLocked1to1 = CONFIG.gizmoShape === "circle" || CONFIG.gizmoShape === "square";
+    if (isLocked1to1) {
+      if (gizmoOuterHitEllipse) gizmoOuterHitEllipse.style.cursor = "nwse-resize";
+      if (gizmoOuterHitRect) gizmoOuterHitRect.style.cursor = "nwse-resize";
+    } else {
+      const rect = stageContainer.getBoundingClientRect();
+      const cx = CONFIG.gizmoX * rect.width;
+      const cy = CONFIG.gizmoY * rect.height;
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const dx = mx - cx;
+      const dy = my - cy;
+      const radAngle = THREE.MathUtils.degToRad(-CONFIG.gizmoAngle);
+      const ca = Math.cos(radAngle);
+      const sa = Math.sin(radAngle);
+      const localX = Math.abs(dx * ca - dy * sa);
+      const localY = Math.abs(dx * sa + dy * ca);
+
+      const normX = localX / Math.max(1, CONFIG.gizmoRx);
+      const normY = localY / Math.max(1, CONFIG.gizmoRy);
+      let cursor = "nwse-resize";
+      if (normX > 0.75 && normY < 0.6) cursor = "ew-resize";
+      else if (normY > 0.75 && normX < 0.6) cursor = "ns-resize";
+
+      if (gizmoOuterHitEllipse) gizmoOuterHitEllipse.style.cursor = cursor;
+      if (gizmoOuterHitRect) gizmoOuterHitRect.style.cursor = cursor;
+    }
   }
 
   function onOuterEdgeLeave() {
@@ -1318,11 +1349,20 @@
     const cy = CONFIG.gizmoY * rect.height;
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    const initDist = Math.max(10, Math.hypot(mx - cx, my - cy));
+    const dx = mx - cx;
+    const dy = my - cy;
+
+    const radAngle = THREE.MathUtils.degToRad(-CONFIG.gizmoAngle);
+    const ca = Math.cos(radAngle);
+    const sa = Math.sin(radAngle);
+    const startLocalX = Math.abs(dx * ca - dy * sa);
+    const startLocalY = Math.abs(dx * sa + dy * ca);
+
     edgeDragOrigin = {
       startRx: CONFIG.gizmoRx,
       startRy: CONFIG.gizmoRy,
-      initDist: initDist,
+      startLocalX: Math.max(1, startLocalX),
+      startLocalY: Math.max(1, startLocalY),
       cx: cx,
       cy: cy
     };
@@ -1370,17 +1410,29 @@
     } else if (gizmoDragMode === "outer_edge") {
       const dx = mx - edgeDragOrigin.cx;
       const dy = my - edgeDragOrigin.cy;
-      const currDist = Math.max(10, Math.hypot(dx, dy));
-      const scale = currDist / edgeDragOrigin.initDist;
+      const radAngle = THREE.MathUtils.degToRad(-CONFIG.gizmoAngle);
+      const ca = Math.cos(radAngle);
+      const sa = Math.sin(radAngle);
+      const localX = Math.abs(dx * ca - dy * sa);
+      const localY = Math.abs(dx * sa + dy * ca);
+
       const isLocked1to1 = CONFIG.gizmoShape === "circle" || CONFIG.gizmoShape === "square";
 
       if (isLocked1to1 || e.shiftKey) {
-        const newR = THREE.MathUtils.clamp(edgeDragOrigin.startRx * scale, 30, 850);
-        CONFIG.gizmoRx = newR;
-        CONFIG.gizmoRy = newR;
+        // Shift held or Circle/Square mode: strict 1:1 proportional uniform circle/square
+        const currDist = Math.max(10, Math.hypot(dx, dy));
+        const initDist = Math.max(10, Math.hypot(edgeDragOrigin.startLocalX, edgeDragOrigin.startLocalY));
+        const scale = currDist / initDist;
+        const uniformR = THREE.MathUtils.clamp(Math.max(edgeDragOrigin.startRx, edgeDragOrigin.startRy) * scale, 30, 950);
+        CONFIG.gizmoRx = uniformR;
+        CONFIG.gizmoRy = uniformR;
       } else {
-        CONFIG.gizmoRx = THREE.MathUtils.clamp(edgeDragOrigin.startRx * scale, 30, 850);
-        CONFIG.gizmoRy = THREE.MathUtils.clamp(edgeDragOrigin.startRy * scale, 30, 850);
+        // Ellipse & Rectangle WITHOUT Shift: free independent stretching along axes!
+        // Pulling horizontal side stretches width (rx), pulling vertical side stretches height (ry)
+        const deltaLocalX = localX - edgeDragOrigin.startLocalX;
+        const deltaLocalY = localY - edgeDragOrigin.startLocalY;
+        CONFIG.gizmoRx = THREE.MathUtils.clamp(edgeDragOrigin.startRx + deltaLocalX, 30, 950);
+        CONFIG.gizmoRy = THREE.MathUtils.clamp(edgeDragOrigin.startRy + deltaLocalY, 30, 950);
       }
       if (gizmoTransformBadge) {
         gizmoTransformBadge.classList.remove("hidden", "inner-badge");
@@ -1604,9 +1656,11 @@
   window.addEventListener("resize", onResize);
 
   let lastTime = performance.now();
+  let isRenderingVideo = false;
 
   function animate(now) {
     requestAnimationFrame(animate);
+    if (isRenderingVideo) return; // Completely freeze background animate loop during video render!
 
     const dt = Math.min((now - lastTime) / 1000, 0.1);
     lastTime = now;
@@ -2210,7 +2264,7 @@
   document.getElementById("btnCloseWebmModal").addEventListener("click", () => webmModal.classList.add("hidden"));
   document.getElementById("btnCancelWebm").addEventListener("click", () => webmModal.classList.add("hidden"));
 
-  document.getElementById("btnStartWebmRender").addEventListener("click", () => {
+  document.getElementById("btnStartWebmRender").addEventListener("click", async () => {
     const duration = Number(document.getElementById("webmDurationSelect").value);
     const fps = Number(document.getElementById("webmFpsSelect").value);
     const bgMode = document.getElementById("webmBgSelect").value;
@@ -2218,65 +2272,130 @@
     const progressWrap = document.getElementById("webmProgressWrap");
     const progressBar = document.getElementById("webmProgressBar");
     const progressPct = document.getElementById("webmProgressPercent");
+    const btnStart = document.getElementById("btnStartWebmRender");
+    const btnCancel = document.getElementById("btnCancelWebm");
+
     progressWrap.classList.remove("hidden");
+    progressBar.style.width = "0%";
+    progressPct.textContent = "0%";
+    btnStart.disabled = true;
 
     const wasPlaying = CONFIG.isPlaying;
     setPlaying(false);
+    isRenderingVideo = true;
 
     scene.background = bgMode === "dark" ? new THREE.Color(0x090b10) : null;
 
     const canvas = renderer.domElement;
-    const stream = canvas.captureStream(fps);
-    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-      ? "video/webm;codecs=vp9"
-      : "video/webm";
+    // captureStream(0) allows manual deterministic frame capture via track.requestFrame()
+    const stream = canvas.captureStream(0);
+    const track = stream.getVideoTracks()[0];
+
+    let mimeType = "video/webm;codecs=vp9";
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = "video/webm;codecs=vp8";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm";
+      }
+    }
 
     const recorder = new MediaRecorder(stream, {
       mimeType,
-      videoBitsPerSecond: 12_000_000
+      videoBitsPerSecond: 25_000_000
     });
 
     const chunks = [];
     recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
 
+    let isCancelled = false;
+    const cancelHandler = () => {
+      isCancelled = true;
+      try { recorder.stop(); } catch (e) {}
+    };
+    btnCancel?.addEventListener("click", cancelHandler, { once: true });
+
     recorder.onstop = () => {
       scene.background = null;
+      isRenderingVideo = false;
+      btnStart.disabled = false;
+      progressWrap.classList.add("hidden");
+      webmModal.classList.add("hidden");
+      setPlaying(wasPlaying);
+
+      if (isCancelled) {
+        showToast("Рендеринг отменён");
+        return;
+      }
+
       const blob = new Blob(chunks, { type: "video/webm" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `ring-slider-360-${duration}s.webm`;
+      a.download = `ring-slider-360-${duration}s-${fps}fps.webm`;
       a.click();
-      progressWrap.classList.add("hidden");
-      webmModal.classList.add("hidden");
-      setPlaying(wasPlaying);
-      showToast("WebM видео 360° готово!");
+      showToast(`🎬 WebM 360° (${fps} FPS) готов без микро-рывков!`);
     };
 
-    recorder.start();
-    const totalFrames = duration * fps;
-    let currentFrame = 0;
+    const totalFrames = Math.round(duration * fps);
     const startRotY = ringGroup.rotation.y;
+    const startUtime = sharedUniforms.uTime.value;
+    const frameIntervalMs = 1000 / fps;
 
-    function stepFrame() {
-      if (currentFrame >= totalFrames) {
-        recorder.stop();
-        return;
-      }
-      const progress = currentFrame / totalFrames;
+    // Render initial frame 0 before recorder starts
+    ringGroup.rotation.y = startRotY;
+    updateConstructionBounds();
+    renderer.render(scene, camera);
+    if (track && track.requestFrame) track.requestFrame();
+
+    recorder.start();
+
+    // High precision frame stepping paced to exact timestamps
+    const startTime = performance.now();
+
+    for (let frame = 0; frame < totalFrames; frame++) {
+      if (isCancelled) break;
+
+      // Deterministic math step: exact progress [0 .. (totalFrames - 1) / totalFrames]
+      const progress = frame / totalFrames;
       ringGroup.rotation.y = startRotY + progress * Math.PI * 2 * CONFIG.direction;
-      sharedUniforms.uTime.value += 1 / fps;
+      sharedUniforms.uTime.value = startUtime + (frame / fps);
+
+      // Render orders update for 3D depth sorting
+      const tempZVec = new THREE.Vector3();
+      for (let i = 0; i < slideMeshes.length; i++) {
+        const mesh = slideMeshes[i];
+        tempZVec.set(0, 0, ringRadius);
+        mesh.localToWorld(tempZVec);
+        mesh.renderOrder = Math.round((tempZVec.z + ringRadius * 2) * 10);
+      }
+
+      updateConstructionBounds();
       renderer.render(scene, camera);
 
-      const pct = Math.round(progress * 100);
+      if (track && track.requestFrame) {
+        track.requestFrame();
+      }
+
+      // UI progress update
+      const pct = Math.round(((frame + 1) / totalFrames) * 100);
       progressBar.style.width = `${pct}%`;
       progressPct.textContent = `${pct}%`;
 
-      currentFrame++;
-      setTimeout(stepFrame, 1000 / fps);
+      // Pace frame to ensure MediaRecorder records exact timestamps without jitter
+      const targetTime = startTime + (frame + 1) * frameIntervalMs;
+      const delay = Math.max(0, targetTime - performance.now());
+      if (delay > 0) {
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        await new Promise(r => setTimeout(r, 0));
+      }
     }
 
-    stepFrame();
+    // Allow recorder 150ms to finalize the last packet before stopping
+    await new Promise(r => setTimeout(r, 150));
+    if (!isCancelled && recorder.state === "recording") {
+      recorder.stop();
+    }
   });
 
   /* ================================================================== *

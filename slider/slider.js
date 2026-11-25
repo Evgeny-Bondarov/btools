@@ -888,6 +888,7 @@
    * ================================================================== */
 
   gsap.ticker.add((time, deltaMS) => {
+    if (isRecordingWebm) return; // Prevent ticker conflicts during deterministic WebM recording
     if (!isDraggingStage && !isPanningMedia) {
       offset += motion.velocity * (deltaMS / 1000);
     }
@@ -2365,11 +2366,13 @@ export default function MockupSlider({
     const canvas = renderer.domElement;
     let stream;
     try {
-      stream = canvas.captureStream(fps);
+      stream = canvas.captureStream(0);
     } catch (e) {
       alert("captureStream не поддерживается вашим браузером. Используйте Google Chrome или Edge.");
       return;
     }
+
+    const track = stream.getVideoTracks()[0];
 
     let mimeType = 'video/webm;codecs=vp9';
     if (!MediaRecorder.isTypeSupported(mimeType)) {
@@ -2383,7 +2386,7 @@ export default function MockupSlider({
     try {
       recorder = new MediaRecorder(stream, {
         mimeType,
-        videoBitsPerSecond: bitrate
+        videoBitsPerSecond: Math.max(16_000_000, bitrate)
       });
     } catch (err) {
       console.warn("Fallback MediaRecorder:", err);
@@ -2412,27 +2415,79 @@ export default function MockupSlider({
     CONFIG.isPlaying = true;
     updateVelocityTarget();
 
-    recorder.start(100);
-
-    const startTime = performance.now();
-    const totalMs = durationSeconds * 1000;
-
-    const intervalId = setInterval(() => {
-      const elapsed = performance.now() - startTime;
-      const pct = Math.min(100, Math.round((elapsed / totalMs) * 100));
-      progressBar.style.width = `${pct}%`;
-      progressPercent.textContent = `${pct}%`;
-
-      if (elapsed >= totalMs) {
-        clearInterval(intervalId);
-        recorder.stop();
-      }
-    }, 100);
-
     recorder.onstop = () => {
       isRecordingWebm = false;
       btnStart.disabled = false;
       btnStartText.textContent = "Начать рендеринг WebM";
+      progressWrap.classList.add("hidden");
+      document.getElementById("webmModal").classList.add("hidden");
+
+      if (!wasPlaying) {
+        CONFIG.isPlaying = false;
+        motion.velocity = 0;
+      }
+
+      const blob = new Blob(chunks, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `slider-studio-${durationSeconds}s-${fps}fps.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`🎬 WebM видео (${fps} FPS) готово без микро-рывков!`);
+    };
+
+    const totalFrames = Math.round(durationSeconds * fps);
+    const frameIntervalMs = 1000 / fps;
+    const startUtime = shared.uTime.value;
+    const half = stripSpan / 2;
+
+    function renderSingleFrame(frameIdx) {
+      const stepTime = startUtime + (frameIdx / fps);
+      offset += motion.velocity * (1 / fps);
+      shared.uTime.value = stepTime;
+
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const x = ((card.baseX - offset) % stripSpan + stripSpan) % stripSpan;
+        card.mesh.position.x = x - half;
+      }
+
+      renderer.render(scene, camera);
+      if (track && track.requestFrame) {
+        track.requestFrame();
+      }
+    }
+
+    // Initial frame
+    renderSingleFrame(0);
+    recorder.start();
+
+    (async () => {
+      const startTime = performance.now();
+      for (let frame = 0; frame < totalFrames; frame++) {
+        renderSingleFrame(frame);
+
+        const pct = Math.min(100, Math.round(((frame + 1) / totalFrames) * 100));
+        progressBar.style.width = `${pct}%`;
+        progressPercent.textContent = `${pct}%`;
+
+        const targetTime = startTime + (frame + 1) * frameIntervalMs;
+        const delay = Math.max(0, targetTime - performance.now());
+        if (delay > 0) {
+          await new Promise(r => setTimeout(r, delay));
+        } else {
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      await new Promise(r => setTimeout(r, 150));
+      if (recorder.state === "recording") {
+        recorder.stop();
+      }
+    })();
       progressWrap.classList.add("hidden");
       document.getElementById("webmModal").classList.add("hidden");
 
