@@ -1,0 +1,396 @@
+[
+  {
+    "id": "preset_1794986653238",
+    "name": "1",
+    "createdAt": "2026-11-18T07:24:13.238Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 400,
+      "cardRadius": 10,
+      "cardGapRatio": 0.02,
+      "threads": 16,
+      "scrollSpeed": 95,
+      "direction": -1,
+      "tearZoneWidth": 300,
+      "shaderMode": "pixel",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.35,
+      "wobble": 2.4,
+      "pixelSize": 14,
+      "pixelScatter": 30,
+      "pixelSeed": 42.1337,
+      "liquidFreq": 6,
+      "liquidStrength": 1.2,
+      "liquidSpeed": 1.5,
+      "liquidSeed": 17.89,
+      "slideCount": 4
+    },
+    "slides": [
+      {
+        "index": 0,
+        "mediaOffset": {
+          "x": -2,
+          "y": 1118
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_01.jpg"
+      },
+      {
+        "index": 1,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1454.5555555555554
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_02.jpg"
+      },
+      {
+        "index": 2,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1411.6666666666665
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_03.jpg"
+      },
+      {
+        "index": 3,
+        "mediaOffset": {
+          "x": 4,
+          "y": 1931.3703703703702
+        },
+        "mediaScale": 1.16,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_04.jpg"
+      }
+    ]
+  },
+  {
+    "id": "preset_1794986373292",
+    "name": "1",
+    "createdAt": "2026-11-18T07:19:33.292Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 400,
+      "cardRadius": 10,
+      "cardGapRatio": 0.02,
+      "threads": 16,
+      "scrollSpeed": 95,
+      "direction": -1,
+      "tearZoneWidth": 300,
+      "shaderMode": "pixel",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.35,
+      "wobble": 2.4,
+      "pixelSize": 14,
+      "pixelScatter": 30,
+      "pixelSeed": 42.1337,
+      "liquidFreq": 6,
+      "liquidStrength": 1.2,
+      "liquidSpeed": 1.5,
+      "liquidSeed": 17.89,
+      "slideCount": 4
+    },
+    "slides": [
+      {
+        "index": 0,
+        "mediaOffset": {
+          "x": -3,
+          "y": 1118
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_01.jpg"
+      },
+      {
+        "index": 1,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1454.5555555555554
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_02.jpg"
+      },
+      {
+        "index": 2,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1411.6666666666665
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_03.jpg"
+      },
+      {
+        "index": 3,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1401.8518518518517
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_04.jpg"
+      }
+    ]
+  },
+  {
+    "id": "preset_1794986199766",
+    "name": "hero_slider_2",
+    "createdAt": "2026-11-18T07:16:39.766Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 400,
+      "cardRadius": 10,
+      "cardGapRatio": 0.02,
+      "threads": 16,
+      "scrollSpeed": 95,
+      "direction": -1,
+      "tearZoneWidth": 300,
+      "shaderMode": "pixel",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.35,
+      "wobble": 2.4,
+      "pixelSize": 14,
+      "pixelScatter": 30,
+      "pixelSeed": 42.1337,
+      "liquidFreq": 6,
+      "liquidStrength": 1.2,
+      "liquidSpeed": 1.5,
+      "liquidSeed": 17.89,
+      "slideCount": 4
+    },
+    "slides": [
+      {
+        "index": 0,
+        "mediaOffset": {
+          "x": 16,
+          "y": -181.8546757901596
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_01.jpg"
+      },
+      {
+        "index": 1,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1455.5555555555554
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_02.jpg"
+      },
+      {
+        "index": 2,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1411.6666666666665
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_03.jpg"
+      },
+      {
+        "index": 3,
+        "mediaOffset": {
+          "x": 0,
+          "y": 1401.8518518518517
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "img/motion_blur_portrait_04.jpg"
+      }
+    ]
+  },
+  {
+    "id": "preset_1794985799657",
+    "name": "hero_slider_1",
+    "createdAt": "2026-11-18T07:09:59.657Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 400,
+      "cardRadius": 24,
+      "cardGapRatio": 0.02,
+      "threads": 16,
+      "scrollSpeed": 95,
+      "direction": -1,
+      "tearZoneWidth": 230,
+      "shaderMode": "pixel",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.22,
+      "wobble": 2.4,
+      "pixelSize": 20,
+      "pixelScatter": 45,
+      "pixelSeed": 42.1337,
+      "liquidFreq": 6,
+      "liquidStrength": 1.2,
+      "liquidSpeed": 1.5,
+      "liquidSeed": 17.89,
+      "slideCount": 6
+    },
+    "slides": [
+      {
+        "index": 0,
+        "mediaOffset": {
+          "x": 0,
+          "y": 0
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_01.jpg"
+      },
+      {
+        "index": 1,
+        "mediaOffset": {
+          "x": 0,
+          "y": 0
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_02.jpg"
+      },
+      {
+        "index": 2,
+        "mediaOffset": {
+          "x": 0,
+          "y": 0
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_03.jpg"
+      },
+      {
+        "index": 3,
+        "mediaOffset": {
+          "x": 0,
+          "y": 0
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_04.jpg"
+      },
+      {
+        "index": 4,
+        "mediaOffset": {
+          "x": 0,
+          "y": 0
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_05.jpg"
+      },
+      {
+        "index": 5,
+        "mediaOffset": {
+          "x": 0,
+          "y": 0
+        },
+        "mediaScale": 1,
+        "fitMode": 0,
+        "imageSrc": "http://localhost:8080/slider/img/motion_blur_portrait_06.jpg"
+      }
+    ]
+  },
+  {
+    "name": "Minimal Dark Showcase",
+    "config": {
+      "cardHeight": 440,
+      "cardRadius": 28,
+      "shaderMode": "threads"
+    },
+    "id": "preset_1794982280040",
+    "createdAt": "2026-11-18T06:11:20.040Z"
+  },
+  {
+    "id": "preset_silk_threads",
+    "name": "Silk Threads (Портфолио 16:9)",
+    "createdAt": "2026-11-18T09:00:00.000Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 400,
+      "cardRadius": 24,
+      "cardGapRatio": 0.1,
+      "threads": 26,
+      "scrollSpeed": 95,
+      "direction": -1,
+      "tearZoneWidth": 380,
+      "shaderMode": "threads",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.22,
+      "wobble": 1,
+      "pixelSize": 20,
+      "pixelScatter": 45,
+      "liquidFreq": 6,
+      "liquidStrength": 1.2,
+      "liquidSpeed": 1.5
+    }
+  },
+  {
+    "id": "preset_pixel_cyber",
+    "name": "Cyberpunk Pixelate (Пиксели)",
+    "createdAt": "2026-11-18T09:05:00.000Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 380,
+      "cardRadius": 16,
+      "cardGapRatio": 0.12,
+      "threads": 26,
+      "scrollSpeed": 110,
+      "direction": -1,
+      "tearZoneWidth": 420,
+      "shaderMode": "pixel",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.25,
+      "pixelSize": 18,
+      "pixelScatter": 55,
+      "pixelSeed": 133.7
+    }
+  },
+  {
+    "id": "preset_liquid_flow",
+    "name": "Liquid Flow (Жидкое плавление)",
+    "createdAt": "2026-11-18T09:10:00.000Z",
+    "config": {
+      "aspectRatio": 1.7777777777777777,
+      "cardHeight": 420,
+      "cardRadius": 32,
+      "cardGapRatio": 0.14,
+      "threads": 26,
+      "scrollSpeed": 80,
+      "direction": -1,
+      "tearZoneWidth": 400,
+      "shaderMode": "liquid",
+      "fadeLeft": true,
+      "fadeRight": true,
+      "fadeTop": false,
+      "fadeBottom": false,
+      "fadeDepth": 0.2,
+      "liquidFreq": 7.5,
+      "liquidStrength": 1.6,
+      "liquidSpeed": 1.8,
+      "liquidSeed": 42
+    }
+  }
+]

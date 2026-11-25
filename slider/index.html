@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup Slider Studio — Unwoven 16:9</title>
+  <link rel="stylesheet" href="./style.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="../" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#9ca3af;text-decoration:none;font-size:12px;font-weight:600;margin-right:8px;" title="Вернуться в экосистему btools">← btools</a>
+        <div class="app-logo">
+          <div class="logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="5" width="20" height="14" rx="3"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+          </div>
+          <span class="logo-title">Slider Mockup <span>Studio</span></span>
+          <span class="badge aspect-badge">16:9</span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <!-- Play / Pause & Quick Speed Buttons -->
+        <div class="playback-controls">
+          <button id="btnDirLeft" class="btn-icon" title="Направление: Влево (<-)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="19 20 9 12 19 4 19 20"></polygon>
+              <line x1="5" y1="19" x2="5" y2="5"></line>
+            </svg>
+          </button>
+          <button id="btnPlayPause" class="btn-icon btn-primary" title="Пауза / Старт">
+            <svg id="iconPause" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            <svg id="iconPlay" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <button id="btnDirRight" class="btn-icon" title="Направление: Вправо (->)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 4 15 12 5 20 5 4"></polygon>
+              <line x1="19" y1="5" x2="19" y2="19"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="mode-pills" id="modeSelector">
+          <button class="pill active" data-shader-mode="threads" title="Линии-волосы (дефолт)">
+            <span class="pill-dot"></span>Волосы
+          </button>
+          <button class="pill" data-shader-mode="pixel" title="Эффект пикселизации">
+            <span class="pill-dot"></span>Пиксели
+          </button>
+          <button class="pill" data-shader-mode="liquid" title="Эффект расплавленной жидкости">
+            <span class="pill-dot"></span>Жидкость
+          </button>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Figma Export Dropdown (PNG 1x/2x & Transparent WebM) -->
+        <div class="dropdown-wrapper" id="figmaDropdownWrapper">
+          <button id="btnFigmaExport" class="btn btn-secondary btn-sm" title="Экспорт для Figma: WebM без фона и PNG 1x / 2x">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 5.5A3.5 3.5 0 0 1 8.5 2H12v7H8.5A3.5 3.5 0 0 1 5 5.5z"></path>
+              <path d="M12 2h3.5a3.5 3.5 0 1 1 0 7H12V2z"></path>
+              <path d="M12 12.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 1 1-7 0z"></path>
+              <path d="M5 19.5A3.5 3.5 0 0 1 8.5 16H12v3.5a3.5 3.5 0 1 1-7 0z"></path>
+              <path d="M5 12.5A3.5 3.5 0 0 1 8.5 9H12v7H8.5A3.5 3.5 0 0 1 5 12.5z"></path>
+            </svg>
+            <span>Figma Экспорт ▾</span>
+          </button>
+          <div class="dropdown-menu hidden" id="figmaDropdownMenu">
+            <div class="dropdown-header">Экспорт для примерки в Figma</div>
+            <div class="dropdown-group-label">PNG без фона (Статика)</div>
+            <button id="btnExportPng1x" class="dropdown-item">
+              <span>📸 Скачать PNG (1x)</span>
+              <span class="dropdown-item-meta">Стандарт</span>
+            </button>
+            <button id="btnExportPng2x" class="dropdown-item">
+              <span>📸 Скачать PNG (2x Retina)</span>
+              <span class="dropdown-item-meta">Высокое качество</span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-group-label">Бесшовное видео WebM без фона</div>
+            <button id="btnOpenWebmModal" class="dropdown-item">
+              <span>🎬 Срендерить WebM видео...</span>
+              <span class="dropdown-item-meta">Альфа-канал</span>
+            </button>
+          </div>
+        </div>
+
+        <button id="btnOpenPresets" class="btn btn-secondary btn-sm" title="Сохраненные пресеты в базе данных (не удаляются при очистке кэша)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span>Пресеты</span>
+        </button>
+
+        <button id="btnOpenCode" class="btn btn-primary btn-sm" title="Получить готовый код и промпт для ИИ-агентов">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <span>&lt;/&gt; Код для сайтов и ИИ</span>
+        </button>
+
+        <button id="btnTogglePanMode" class="btn btn-secondary btn-sm" title="Переключение режима клика: Двигать ленту или редактировать фото внутри">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h6v6"></path>
+            <path d="M9 21H3v-6"></path>
+            <path d="M21 3l-7 7"></path>
+            <path d="M3 21l7-7"></path>
+          </svg>
+          <span id="panModeLabel">Двигать фото</span>
+        </button>
+
+        <button id="btnToggleSidebar" class="btn btn-icon" title="Свойства и настройки">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      <!-- WebGL Canvas Stage -->
+      <main class="stage-container" id="stageContainer">
+        <div class="stage" id="stage"></div>
+
+        <!-- Overlays (Floating Card HUD, Direct Card Upload Buttons) -->
+        <div class="stage-overlays" id="stageOverlays">
+          <!-- Dynamically positioned interactive overlays will appear here -->
+        </div>
+
+        <!-- Active Card Floating Inspector HUD (Casemaker Style) -->
+        <div class="floating-hud hidden" id="cardHud">
+          <div class="hud-header">
+            <span class="hud-title">Слайд <span id="hudCardNum">#1</span></span>
+            <div class="hud-actions">
+              <button id="hudFitFillToggle" class="btn-chip" title="Переключить Fit / Fill">
+                <span id="hudFitFillText">Fill (Cover)</span>
+              </button>
+              <button id="hudResetTransform" class="btn-icon-subtle" title="Сбросить зум и позицию">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                </svg>
+              </button>
+              <button id="hudUploadBtn" class="btn-icon-subtle" title="Заменить изображение">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </button>
+              <button id="hudDeleteBtn" class="btn-icon-subtle text-danger" title="Удалить слайд">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="hud-zoom-row">
+            <span class="hud-label">Зум</span>
+            <input type="range" id="hudZoomSlider" min="0.2" max="3.5" step="0.05" value="1.0" />
+            <div class="hud-zoom-input-wrap">
+              <input type="number" id="hudZoomInput" min="20" max="350" step="5" value="100" class="hud-input-number" />
+              <span class="hud-unit">%</span>
+            </div>
+          </div>
+          <div class="hud-anchor-row" id="hudAnchorRow">
+            <span class="hud-label">Позиция</span>
+            <div class="hud-anchor-btns">
+              <button id="btnAnchorTop" class="btn-chip-sm" title="Шапка длинной страницы">⬆ Верх</button>
+              <button id="btnAnchorCenter" class="btn-chip-sm" title="По центру">⬍ Центр</button>
+              <button id="btnAnchorBottom" class="btn-chip-sm" title="Подвал страницы">⬇ Низ</button>
+            </div>
+          </div>
+          <div class="hud-hint">
+            <span>🖱 Drag для сдвига страницы &bull; Колесико для зума</span>
+          </div>
+        </div>
+
+        <!-- Global Drag & Drop Indicator -->
+        <div class="drop-target-overlay hidden" id="dropOverlay">
+          <div class="drop-target-card">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p>Перетащите изображение сюда</p>
+          </div>
+        </div>
+      </main>
+
+      <!-- Sidebar Controls Panel -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-scroll">
+
+          <!-- 0. DATABASE PRESETS -->
+          <div class="panel-section presets-section">
+            <div class="section-title">
+              <span>Пресеты (База данных)</span>
+              <span class="badge db-badge" title="Сохранено в presets.json на сервере">Файловая БД</span>
+            </div>
+            <p class="section-desc">Сохраняйте стили слайдера в постоянную базу данных — они не удалятся даже после очистки кэша браузера.</p>
+
+            <div class="preset-save-box">
+              <input type="text" id="inputPresetName" class="form-input" placeholder="Название пресета..." />
+              <button id="btnSavePreset" class="btn btn-primary btn-sm" title="Сохранить текущие настройки">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Сохранить
+              </button>
+            </div>
+
+            <div class="presets-quick-list" id="presetsQuickList">
+              <!-- Rendered dynamically from /api/slider/presets -->
+            </div>
+          </div>
+          
+          <!-- 1. SLIDES DECK -->
+          <div class="panel-section">
+            <div class="section-title">
+              <span>Слайды (16:9)</span>
+              <button id="btnAddSlide" class="btn btn-xs btn-primary">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                + Слайд
+              </button>
+            </div>
+
+            <div class="control-row">
+              <label>Количество слайдов</label>
+              <div class="stepper">
+                <button id="btnDecSlides" class="btn-step">-</button>
+                <input type="number" id="inputSlideCount" min="2" max="24" value="6" />
+                <button id="btnIncSlides" class="btn-step">+</button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label>Скругление углов (Radius)</label>
+              <div class="range-wrap">
+                <input type="range" id="inputCardRadius" min="0" max="64" value="24" />
+                <span class="range-val" id="valCardRadius">24px</span>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label>Отступ между слайдами (Gap)</label>
+              <div class="range-wrap">
+                <input type="range" id="inputCardGap" min="0" max="240" step="5" value="40" />
+                <span class="range-val" id="valCardGap">40px</span>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label>Высота слайда</label>
+              <div class="range-wrap">
+                <input type="range" id="inputCardHeight" min="240" max="600" step="10" value="400" />
+                <span class="range-val" id="valCardHeight">400px</span>
+              </div>
+            </div>
+
+            <div class="aspect-info-card">
+              <div class="aspect-formula">Размер 16:9 &rarr; <span id="labelDimensions">711 &times; 400 px</span></div>
+            </div>
+          </div>
+
+          <!-- 2. ANIMATION & MOTION -->
+          <div class="panel-section">
+            <div class="section-title">Анимация движения</div>
+            
+            <div class="control-row">
+              <label>Скорость ленты</label>
+              <div class="range-wrap">
+                <input type="range" id="inputSpeed" min="0" max="400" step="5" value="95" />
+                <span class="range-val" id="valSpeed">95 px/s</span>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label>Направление</label>
+              <div class="btn-group-toggle">
+                <button id="btnDirLeftToggle" class="btn-toggle active" data-dir="-1">Влево &larr;</button>
+                <button id="btnDirRightToggle" class="btn-toggle" data-dir="1">Вправо &rarr;</button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label>Пауза при наведении</label>
+              <input type="checkbox" id="chkPauseOnHover" class="custom-toggle" checked />
+            </div>
+          </div>
+
+          <!-- 3. EDGE ERASE / FADE -->
+          <div class="panel-section">
+            <div class="section-title">
+              <span>Стирание конструкции по краям</span>
+            </div>
+            <p class="section-desc">Выберите стороны экрана, по которым концы нитей (волос) и вся лента плавно стираются в фон при выходе за границы.</p>
+
+            <div class="edge-selector-grid">
+              <label class="edge-btn-card">
+                <input type="checkbox" id="chkFadeTop" />
+                <div class="edge-btn-inner">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="4" x2="20" y2="4"></line>
+                    <polyline points="8 9 12 5 16 9"></polyline>
+                  </svg>
+                  <span>Верх</span>
+                </div>
+              </label>
+
+              <div class="edge-middle-row">
+                <label class="edge-btn-card">
+                  <input type="checkbox" id="chkFadeLeft" checked />
+                  <div class="edge-btn-inner">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="4" y1="4" x2="4" y2="20"></line>
+                      <polyline points="9 8 5 12 9 16"></polyline>
+                    </svg>
+                    <span>Лево</span>
+                  </div>
+                </label>
+
+                <div class="edge-center-preview" title="Предпросмотр краев экрана">
+                  <div class="edge-center-box" id="edgePreviewBox">Экран</div>
+                </div>
+
+                <label class="edge-btn-card">
+                  <input type="checkbox" id="chkFadeRight" checked />
+                  <div class="edge-btn-inner">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="20" y1="4" x2="20" y2="20"></line>
+                      <polyline points="15 8 19 12 15 16"></polyline>
+                    </svg>
+                    <span>Право</span>
+                  </div>
+                </label>
+              </div>
+
+              <label class="edge-btn-card">
+                <input type="checkbox" id="chkFadeBottom" />
+                <div class="edge-btn-inner">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="20" x2="20" y2="20"></line>
+                    <polyline points="8 15 12 19 16 15"></polyline>
+                  </svg>
+                  <span>Низ</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="control-row mt-3">
+              <label>Ширина стирания краев</label>
+              <div class="range-wrap">
+                <input type="range" id="inputFadeDepth" min="0.05" max="0.50" step="0.01" value="0.22" />
+                <span class="range-val" id="valFadeDepth">22%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. SHADER EFFECTS (Волосы / Пикселизация / Жидкость) -->
+          <div class="panel-section">
+            <div class="section-title">
+              <span>Шейдеры боковых уводов в фон</span>
+            </div>
+            
+            <div class="control-row">
+              <label>Эффект увода</label>
+              <select id="selectShaderMode" class="form-select">
+                <option value="threads">Волосы / Нити (По умолчанию)</option>
+                <option value="pixel">Пикселизация (Pixel Dissolve)</option>
+                <option value="liquid">Жидкость (Liquid Melt)</option>
+              </select>
+            </div>
+
+            <div class="control-row">
+              <label>Ширина зоны увода (Tear Zone)</label>
+              <div class="range-wrap">
+                <input type="range" id="inputTearZone" min="150" max="600" step="10" value="380" />
+                <span class="range-val" id="valTearZone">380px</span>
+              </div>
+            </div>
+
+            <!-- Parameters for THREADS -->
+            <div class="shader-subparams" id="paramsThreads">
+              <div class="control-row">
+                <label>Количество нитей</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputThreadCount" min="8" max="50" step="2" value="26" />
+                  <span class="range-val" id="valThreadCount">26</span>
+                </div>
+              </div>
+              <div class="control-row">
+                <label>Амплитуда колебаний</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputWobble" min="0.0" max="2.5" step="0.1" value="1.0" />
+                  <span class="range-val" id="valWobble">1.0&times;</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parameters for PIXELATION -->
+            <div class="shader-subparams hidden" id="paramsPixel">
+              <div class="control-row">
+                <label>Толщина пикселей (Размер)</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputPixelSize" min="4" max="64" step="2" value="20" />
+                  <span class="range-val" id="valPixelSize">20px</span>
+                </div>
+              </div>
+
+              <div class="control-row">
+                <label>Разброс пикселей</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputPixelScatter" min="0" max="100" step="5" value="45" />
+                  <span class="range-val" id="valPixelScatter">45%</span>
+                </div>
+              </div>
+
+              <div class="btn-row mt-2">
+                <button id="btnRandomPixel" class="btn btn-secondary w-full">
+                  <span>🎲 Рандомить пиксели</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Parameters for LIQUID -->
+            <div class="shader-subparams hidden" id="paramsLiquid">
+              <div class="control-row">
+                <label>Частота волн жидкости</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputLiquidFreq" min="1.0" max="15.0" step="0.5" value="6.0" />
+                  <span class="range-val" id="valLiquidFreq">6.0</span>
+                </div>
+              </div>
+
+              <div class="control-row">
+                <label>Сила растекания</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputLiquidStrength" min="0.2" max="3.0" step="0.1" value="1.2" />
+                  <span class="range-val" id="valLiquidStrength">1.2&times;</span>
+                </div>
+              </div>
+
+              <div class="control-row">
+                <label>Скорость течения</label>
+                <div class="range-wrap">
+                  <input type="range" id="inputLiquidSpeed" min="0.2" max="4.0" step="0.2" value="1.5" />
+                  <span class="range-val" id="valLiquidSpeed">1.5&times;</span>
+                </div>
+              </div>
+
+              <div class="btn-row mt-2">
+                <button id="btnRandomLiquid" class="btn btn-secondary w-full">
+                  <span>🎲 Рандомить жидкость</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. SLIDES LIST & QUICK UPLOADS -->
+          <div class="panel-section">
+            <div class="section-title">Список слайдов</div>
+            <div class="slides-mini-list" id="slidesMiniList">
+              <!-- Mini cards list rendered by JS -->
+            </div>
+          </div>
+
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Hidden File Input for Single Image Upload -->
+  <input type="file" id="globalFileInput" accept="image/*" class="hidden" />
+
+  <!-- Code & AI Modal -->
+  <div class="modal-overlay hidden" id="codeModal">
+    <div class="modal-window code-modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Код слайдера для сайтов и ИИ-агентов</h3>
+            <p class="modal-subtitle">Скопируйте готовый рабочий код для вставки на сайт или промпт для передачи Claude, Cursor, ChatGPT, Antigravity</p>
+          </div>
+        </div>
+        <div class="modal-header-actions">
+          <button id="btnCopyCode" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span id="btnCopyText">Скопировать код</span>
+          </button>
+          <button id="btnCloseCodeModal" class="btn-icon" title="Закрыть">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="code-modal-tabs">
+        <button class="code-tab active" data-tab="prompt">🤖 Промпт для ИИ-агентов</button>
+        <button class="code-tab" data-tab="html">🌐 HTML / Vanilla JS Embed</button>
+        <button class="code-tab" data-tab="react">⚛️ React / Next.js Component</button>
+        <button class="code-tab" data-tab="json">⚙️ Конфигурация (JSON)</button>
+      </div>
+
+      <div class="code-viewer-container">
+        <pre class="code-viewer"><code id="codeViewerContent"></code></pre>
+      </div>
+
+      <div class="code-modal-footer">
+        <div class="code-tips">
+          <span class="tip-badge">Подсказка:</span>
+          <span id="codeModalTip">Передайте этот промпт и код AI-ассистенту, чтобы он автоматически встроил слайдер в любой лендинг или портфолио.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presets Management Modal -->
+  <div class="modal-overlay hidden" id="presetsModal">
+    <div class="modal-window presets-modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Сохраненные пресеты (База данных)</h3>
+            <p class="modal-subtitle">Хранятся на сервере в <code>presets.json</code> — сохраняются навсегда даже при очистке кэша браузера</p>
+          </div>
+        </div>
+        <button id="btnClosePresetsModal" class="btn-icon" title="Закрыть">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="presets-modal-body">
+        <div class="preset-create-bar">
+          <input type="text" id="inputModalPresetName" class="form-input" placeholder="Название нового пресета (например: Dark Minimal 16:9)..." />
+          <button id="btnModalSavePreset" class="btn btn-primary">
+            <span>💾 Сохранить текущие настройки</span>
+          </button>
+        </div>
+
+        <div class="presets-grid" id="presetsModalGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button id="btnExportPresetsFile" class="btn btn-secondary btn-sm" title="Скачать файл бэкапа">
+          <span>📥 Экспорт в JSON файл</span>
+        </button>
+        <button id="btnImportPresetsFile" class="btn btn-secondary btn-sm" title="Загрузить пресеты из файла">
+          <span>📤 Импорт из JSON файла</span>
+        </button>
+        <input type="file" id="inputImportPresetsFile" accept=".json" class="hidden" />
+      </div>
+    </div>
+  </div>
+
+  <!-- WebM Render Modal for Figma -->
+  <div class="modal-overlay hidden" id="webmModal">
+    <div class="modal-window webm-modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge figma-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Рендеринг WebM без фона для Figma</h3>
+            <p class="modal-subtitle">Видео с прозрачным альфа-каналом — Figma воспроизводит его прямо внутри макетов</p>
+          </div>
+        </div>
+        <button id="btnCloseWebmModal" class="btn-icon" title="Закрыть">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body p-6">
+        <div class="webm-render-options">
+          <div class="control-row">
+            <label>Тип бесшовного лупа</label>
+            <select id="selectWebmLoopType" class="form-select w-64">
+              <option value="one_card">1 Слайд (Быстрый луп, ~3-4 сек)</option>
+              <option value="full_cycle">Полный цикл ленты (Все слайды)</option>
+              <option value="fixed_5s">Фиксированное время (5 секунд)</option>
+              <option value="fixed_10s">Фиксированное время (10 секунд)</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label>Частота кадров (FPS)</label>
+            <div class="btn-group-toggle" id="groupWebmFps">
+              <button class="btn-toggle active" data-fps="30">30 FPS (Оптимально)</button>
+              <button class="btn-toggle" data-fps="60">60 FPS (Ультра-плавно)</button>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <label>Битрейт видео</label>
+            <select id="selectWebmBitrate" class="form-select w-64">
+              <option value="12000000">12 Mbps (Высокое качество)</option>
+              <option value="6000000">6 Mbps (Сбалансированное)</option>
+              <option value="3000000">3 Mbps (Компактный размер)</option>
+            </select>
+          </div>
+
+          <div class="webm-info-box">
+            <div class="info-row">
+              <span class="info-label">Формат:</span>
+              <span class="info-val">WebM (VP9 с прозрачным Alpha-каналом)</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Фон:</span>
+              <span class="info-val text-success">100% Прозрачный (RGBA)</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Совместимость:</span>
+              <span class="info-val">Figma (перетащите видео прямо на фрейм)</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar (Visible during render) -->
+          <div class="render-progress-wrap hidden" id="webmProgressWrap">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="webmProgressBar" style="width: 0%;"></div>
+            </div>
+            <div class="progress-text-row">
+              <span id="webmProgressText">Запись кадров...</span>
+              <span id="webmProgressPercent">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button id="btnCancelWebm" class="btn btn-secondary btn-sm">Отмена</button>
+        <button id="btnStartWebmRender" class="btn btn-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="btnStartWebmText">Начать рендеринг WebM</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-notification hidden" id="toastNotification">
+    <div class="toast-content">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span id="toastMessage">Скопировано в буфер!</span>
+    </div>
+  </div>
+
+  <!-- External libraries: Three.js and GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <!-- Main Application Script -->
+  <script src="./slider.js"></script>
+</body>
+</html>
