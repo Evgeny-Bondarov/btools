@@ -510,6 +510,14 @@ html, body {
   stroke: rgba(245, 158, 11, 0.75);
   stroke-width: 1.5;
   stroke-dasharray: 6 5;
+  transition: stroke 0.15s ease, stroke-width 0.15s ease, filter 0.15s ease;
+}
+
+.gizmo-circle.hovered {
+  stroke: #fbbf24;
+  stroke-width: 2.4;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.85));
 }
 
 .gizmo-inner-safe {
@@ -517,6 +525,63 @@ html, body {
   stroke: rgba(6, 182, 212, 0.45);
   stroke-width: 1;
   stroke-dasharray: 3 4;
+  transition: stroke 0.15s ease, stroke-width 0.15s ease, filter 0.15s ease;
+}
+
+.gizmo-inner-safe.hovered {
+  stroke: #22d3ee;
+  stroke-width: 2;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.9));
+}
+
+/* Wide Transparent Hit-Strokes for Hovering & Resizing Anywhere on the Frame */
+.gizmo-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 22px;
+  pointer-events: stroke;
+  cursor: nwse-resize;
+}
+
+.gizmo-edge-hit.inner {
+  stroke-width: 18px;
+  cursor: ew-resize;
+}
+
+/* Dynamic Floating Transform Badge on Frame Edge Hover */
+.gizmo-transform-badge {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  border-radius: 6px;
+  padding: 4px 9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fbbf24;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(245, 158, 11, 0.25);
+  z-index: 52;
+  white-space: nowrap;
+  transition: opacity 0.12s ease;
+}
+
+.gizmo-transform-badge.inner-badge {
+  border-color: rgba(6, 182, 212, 0.7);
+  color: #22d3ee;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(6, 182, 212, 0.25);
+}
+
+.gizmo-transform-badge .transform-badge-icon {
+  flex-shrink: 0;
+  stroke: currentColor;
 }
 
 /* Shape Switcher Anchor & Dropdown */
@@ -1474,14 +1539,53 @@ input[type="range"] {
   border-radius: 8px;
   border: 1px dashed rgba(255, 255, 255, 0.18);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  gap: 2px;
+  font-family: inherit;
   color: var(--text-muted);
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px;
+}
+
+.edge-center-box:hover {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: var(--text-main);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+}
+
+.edge-center-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+}
+
+.edge-center-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.edge-center-box.all-active {
+  background: rgba(99, 102, 241, 0.25) !important;
+  border: 1.5px solid var(--accent) !important;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.45) !important;
+}
+
+.edge-center-box.all-active .edge-center-title {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
+}
+
+.edge-center-box.all-active .edge-center-sub {
+  color: #a5b4fc;
 }
 
 /* Edge Preview Dynamic Glows */

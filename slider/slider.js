@@ -1407,7 +1407,19 @@
       edgePreviewBox.classList.toggle("fade-right", chkFadeRight.checked);
       edgePreviewBox.classList.toggle("fade-top", chkFadeTop.checked);
       edgePreviewBox.classList.toggle("fade-bottom", chkFadeBottom.checked);
+      const allActive = chkFadeLeft.checked && chkFadeRight.checked && chkFadeTop.checked && chkFadeBottom.checked;
+      edgePreviewBox.classList.toggle("all-active", allActive);
     }
+
+    edgePreviewBox?.addEventListener("click", () => {
+      const allActive = chkFadeLeft.checked && chkFadeRight.checked && chkFadeTop.checked && chkFadeBottom.checked;
+      const targetState = !allActive;
+      chkFadeLeft.checked = targetState;
+      chkFadeRight.checked = targetState;
+      chkFadeTop.checked = targetState;
+      chkFadeBottom.checked = targetState;
+      updateEdgeFadeUniforms();
+    });
 
     chkFadeLeft.addEventListener("change", updateEdgeFadeUniforms);
     chkFadeRight.addEventListener("change", updateEdgeFadeUniforms);

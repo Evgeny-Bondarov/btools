@@ -294,6 +294,13 @@
               <!-- Rectangle & Square mode -->
               <rect class="gizmo-circle hidden" id="gizmoRect" x="-220" y="-220" width="440" height="440" rx="6"></rect>
               <rect class="gizmo-inner-safe hidden" id="gizmoInnerRect" x="-55" y="-55" width="110" height="110" rx="4"></rect>
+
+              <!-- Edge Hit Areas: wide transparent strokes for hovering & resizing anywhere on the frames -->
+              <ellipse class="gizmo-edge-hit outer" id="gizmoOuterHitEllipse" cx="0" cy="0" rx="220" ry="220"></ellipse>
+              <ellipse class="gizmo-edge-hit inner" id="gizmoInnerHitEllipse" cx="0" cy="0" rx="55" ry="55"></ellipse>
+              <rect class="gizmo-edge-hit outer hidden" id="gizmoOuterHitRect" x="-220" y="-220" width="440" height="440" rx="6"></rect>
+              <rect class="gizmo-edge-hit inner hidden" id="gizmoInnerHitRect" x="-55" y="-55" width="110" height="110" rx="4"></rect>
+
               <line class="gizmo-rot-stem" id="gizmoRotStem" x1="0" y1="-220" x2="0" y2="-254"></line>
             </g>
           </svg>
@@ -336,6 +343,17 @@
           <!-- Draggable Inner Focus Safe Handle -->
           <div class="gizmo-inner-handle" id="gizmoInnerHandle" title="Потяните для изменения радиуса чистого фокуса">
             <div class="inner-dot"></div>
+          </div>
+
+          <!-- Dynamic floating transformation badge appearing on frame edge hover -->
+          <div class="gizmo-transform-badge hidden" id="gizmoTransformBadge">
+            <svg class="transform-badge-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            <span id="gizmoTransformText">Масштаб</span>
           </div>
 
           <!-- Draggable Radius/Ellipse Handle (Shift = Circle, No Shift = Ellipse) -->
@@ -689,8 +707,11 @@
                   </div>
                 </label>
 
-                <div class="edge-center-preview" title="Предпросмотр стирания краев экрана">
-                  <div class="edge-center-box fade-left fade-right" id="edgePreviewBox">Экран</div>
+                <div class="edge-center-preview" title="Нажмите для стирания по всему экрану (Экран)">
+                  <button type="button" class="edge-center-box" id="edgePreviewBox">
+                    <span class="edge-center-title">Экран</span>
+                    <span class="edge-center-sub">Все стороны</span>
+                  </button>
                 </div>
 
                 <label class="edge-btn-card">

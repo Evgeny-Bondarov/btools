@@ -164,6 +164,7 @@
     uniform float uFadeTop;
     uniform float uFadeBottom;
     uniform float uFadeEdgeDepth;
+    uniform vec4  uConstructionBounds;
     uniform float uTearZone;
 
     float hash21(vec2 p) {
@@ -184,21 +185,32 @@
       if (cardAlpha <= 0.001) discard;
 
       // 2. Entire Construction Screen-Edge Erase (Left, Right, Top, Bottom)
+      vec2 screenUv = gl_FragCoord.xy / uViewportSize;
       float stageFade = 1.0;
-      float fadeZoneX = max(10.0, uFadeEdgeDepth * uViewportSize.x);
-      float fadeZoneY = max(10.0, uFadeEdgeDepth * uViewportSize.y);
+
+      // Visible construction bounds projected onto screen (smoothly clamped)
+      float cMinX = min(uConstructionBounds.x, 0.12);
+      float cMaxX = max(uConstructionBounds.z, 0.88);
+      float cMinY = min(uConstructionBounds.y, 0.18);
+      float cMaxY = max(uConstructionBounds.w, 0.82);
+
+      float spanX = max(0.12, cMaxX - cMinX);
+      float spanY = max(0.12, cMaxY - cMinY);
+
+      float fadeDistX = max(0.02, uFadeEdgeDepth * spanX);
+      float fadeDistY = max(0.02, uFadeEdgeDepth * spanY);
 
       if (uFadeLeft > 0.5) {
-        stageFade *= smoothstep(0.0, fadeZoneX, gl_FragCoord.x);
+        stageFade *= smoothstep(cMinX, cMinX + fadeDistX, screenUv.x);
       }
       if (uFadeRight > 0.5) {
-        stageFade *= 1.0 - smoothstep(uViewportSize.x - fadeZoneX, uViewportSize.x, gl_FragCoord.x);
+        stageFade *= 1.0 - smoothstep(cMaxX - fadeDistX, cMaxX, screenUv.x);
       }
       if (uFadeBottom > 0.5) {
-        stageFade *= smoothstep(0.0, fadeZoneY, gl_FragCoord.y);
+        stageFade *= smoothstep(cMinY, cMinY + fadeDistY, screenUv.y);
       }
       if (uFadeTop > 0.5) {
-        stageFade *= 1.0 - smoothstep(uViewportSize.y - fadeZoneY, uViewportSize.y, gl_FragCoord.y);
+        stageFade *= 1.0 - smoothstep(cMaxY - fadeDistY, cMaxY, screenUv.y);
       }
 
       // 3. Casemaker UV Mapping (Cover / Contain + Pan + Zoom)
@@ -462,8 +474,9 @@
     uFadeRight:      { value: 1.0 },
     uFadeTop:        { value: 0.0 },
     uFadeBottom:     { value: 0.0 },
-    uFadeEdgeDepth:  { value: 0.22 },
-    uTearZone:       { value: 380.0 },
+    uFadeEdgeDepth:      { value: 0.22 },
+    uConstructionBounds: { value: new THREE.Vector4(0.1, 0.2, 0.9, 0.8) },
+    uTearZone:           { value: 380.0 },
     uCardSize:       { value: new THREE.Vector2(640, 360) },
     uRadius:         { value: 24.0 }
   };
@@ -669,9 +682,10 @@
           uFadeLeft:       sharedUniforms.uFadeLeft,
           uFadeRight:      sharedUniforms.uFadeRight,
           uFadeTop:        sharedUniforms.uFadeTop,
-          uFadeBottom:     sharedUniforms.uFadeBottom,
-          uFadeEdgeDepth:  sharedUniforms.uFadeEdgeDepth,
-          uTearZone:       sharedUniforms.uTearZone
+          uFadeBottom:         sharedUniforms.uFadeBottom,
+          uFadeEdgeDepth:      sharedUniforms.uFadeEdgeDepth,
+          uConstructionBounds: sharedUniforms.uConstructionBounds,
+          uTearZone:           sharedUniforms.uTearZone
         }
       });
 
@@ -1037,6 +1051,12 @@
   const gizmoInnerSafe = document.getElementById("gizmoInnerSafe");
   const gizmoRect = document.getElementById("gizmoRect");
   const gizmoInnerRect = document.getElementById("gizmoInnerRect");
+  const gizmoOuterHitEllipse = document.getElementById("gizmoOuterHitEllipse");
+  const gizmoInnerHitEllipse = document.getElementById("gizmoInnerHitEllipse");
+  const gizmoOuterHitRect = document.getElementById("gizmoOuterHitRect");
+  const gizmoInnerHitRect = document.getElementById("gizmoInnerHitRect");
+  const gizmoTransformBadge = document.getElementById("gizmoTransformBadge");
+  const gizmoTransformText = document.getElementById("gizmoTransformText");
   const gizmoRotStem = document.getElementById("gizmoRotStem");
   const gizmoCenterHandle = document.getElementById("gizmoCenterHandle");
   const gizmoInnerHandle = document.getElementById("gizmoInnerHandle");
@@ -1121,6 +1141,19 @@
       gizmoInnerRect.setAttribute("y", -ry * innerRatio);
       gizmoInnerRect.setAttribute("width", rx * 2 * innerRatio);
       gizmoInnerRect.setAttribute("height", ry * 2 * innerRatio);
+
+      gizmoOuterHitRect?.classList.remove("hidden");
+      gizmoInnerHitRect?.classList.remove("hidden");
+      gizmoOuterHitEllipse?.classList.add("hidden");
+      gizmoInnerHitEllipse?.classList.add("hidden");
+      gizmoOuterHitRect?.setAttribute("x", -rx);
+      gizmoOuterHitRect?.setAttribute("y", -ry);
+      gizmoOuterHitRect?.setAttribute("width", rx * 2);
+      gizmoOuterHitRect?.setAttribute("height", ry * 2);
+      gizmoInnerHitRect?.setAttribute("x", -rx * innerRatio);
+      gizmoInnerHitRect?.setAttribute("y", -ry * innerRatio);
+      gizmoInnerHitRect?.setAttribute("width", rx * 2 * innerRatio);
+      gizmoInnerHitRect?.setAttribute("height", ry * 2 * innerRatio);
     } else {
       gizmoCircle.classList.remove("hidden");
       gizmoInnerSafe.classList.remove("hidden");
@@ -1130,6 +1163,15 @@
       gizmoCircle.setAttribute("ry", ry);
       gizmoInnerSafe.setAttribute("rx", rx * innerRatio);
       gizmoInnerSafe.setAttribute("ry", ry * innerRatio);
+
+      gizmoOuterHitEllipse?.classList.remove("hidden");
+      gizmoInnerHitEllipse?.classList.remove("hidden");
+      gizmoOuterHitRect?.classList.add("hidden");
+      gizmoInnerHitRect?.classList.add("hidden");
+      gizmoOuterHitEllipse?.setAttribute("rx", rx);
+      gizmoOuterHitEllipse?.setAttribute("ry", ry);
+      gizmoInnerHitEllipse?.setAttribute("rx", rx * innerRatio);
+      gizmoInnerHitEllipse?.setAttribute("ry", ry * innerRatio);
     }
 
     gizmoRotStem.setAttribute("y1", -ry);
@@ -1202,7 +1244,8 @@
     sharedUniforms.uTearZone.value = CONFIG.tearZoneWidth;
   }
 
-  let gizmoDragMode = null; // 'center' | 'radius' | 'rotate' | 'inner'
+  let gizmoDragMode = null; // 'center' | 'radius' | 'rotate' | 'inner' | 'outer_edge' | 'inner_edge'
+  let edgeDragOrigin = null;
 
   gizmoCenterHandle.addEventListener("mousedown", (e) => {
     e.stopPropagation();
@@ -1224,6 +1267,94 @@
     gizmoDragMode = "rotate";
   });
 
+  // --- Edge Hit Areas for Direct Perimeter Hover & Drag Resize ---
+  function updateTransformBadgePos(clientX, clientY, text, isInner) {
+    if (!gizmoTransformBadge) return;
+    gizmoTransformBadge.classList.remove("hidden");
+    gizmoTransformBadge.classList.toggle("inner-badge", !!isInner);
+    if (gizmoTransformText) gizmoTransformText.textContent = text;
+    const rect = stageContainer.getBoundingClientRect();
+    gizmoTransformBadge.style.left = `${clientX - rect.left}px`;
+    gizmoTransformBadge.style.top = `${clientY - rect.top}px`;
+  }
+
+  function onOuterEdgeHover(e) {
+    if (gizmoDragMode) return;
+    gizmoCircle.classList.add("hovered");
+    gizmoRect.classList.add("hovered");
+    updateTransformBadgePos(e.clientX, e.clientY, `${Math.round(CONFIG.gizmoRx)}×${Math.round(CONFIG.gizmoRy)}px`, false);
+  }
+
+  function onOuterEdgeLeave() {
+    if (gizmoDragMode === "outer_edge" || gizmoDragMode === "radius") return;
+    gizmoCircle.classList.remove("hovered");
+    gizmoRect.classList.remove("hovered");
+    if (gizmoTransformBadge && !gizmoDragMode) {
+      gizmoTransformBadge.classList.add("hidden");
+    }
+  }
+
+  function onInnerEdgeHover(e) {
+    if (gizmoDragMode) return;
+    gizmoInnerSafe.classList.add("hovered");
+    gizmoInnerRect.classList.add("hovered");
+    updateTransformBadgePos(e.clientX, e.clientY, `Фокус: ${Math.round((CONFIG.gizmoInnerRatio || 0.25) * 100)}%`, true);
+  }
+
+  function onInnerEdgeLeave() {
+    if (gizmoDragMode === "inner_edge" || gizmoDragMode === "inner") return;
+    gizmoInnerSafe.classList.remove("hovered");
+    gizmoInnerRect.classList.remove("hovered");
+    if (gizmoTransformBadge && !gizmoDragMode) {
+      gizmoTransformBadge.classList.add("hidden");
+    }
+  }
+
+  function startOuterEdgeDrag(e) {
+    e.stopPropagation();
+    gizmoDragMode = "outer_edge";
+    const rect = stageContainer.getBoundingClientRect();
+    const cx = CONFIG.gizmoX * rect.width;
+    const cy = CONFIG.gizmoY * rect.height;
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const initDist = Math.max(10, Math.hypot(mx - cx, my - cy));
+    edgeDragOrigin = {
+      startRx: CONFIG.gizmoRx,
+      startRy: CONFIG.gizmoRy,
+      initDist: initDist,
+      cx: cx,
+      cy: cy
+    };
+    gizmoCircle.classList.add("hovered");
+    gizmoRect.classList.add("hovered");
+  }
+
+  function startInnerEdgeDrag(e) {
+    e.stopPropagation();
+    gizmoDragMode = "inner_edge";
+    const rect = stageContainer.getBoundingClientRect();
+    const cx = CONFIG.gizmoX * rect.width;
+    const cy = CONFIG.gizmoY * rect.height;
+    edgeDragOrigin = { cx: cx, cy: cy };
+    gizmoInnerSafe.classList.add("hovered");
+    gizmoInnerRect.classList.add("hovered");
+  }
+
+  [gizmoOuterHitEllipse, gizmoOuterHitRect].forEach(el => {
+    el?.addEventListener("mouseenter", onOuterEdgeHover);
+    el?.addEventListener("mousemove", onOuterEdgeHover);
+    el?.addEventListener("mouseleave", onOuterEdgeLeave);
+    el?.addEventListener("mousedown", startOuterEdgeDrag);
+  });
+
+  [gizmoInnerHitEllipse, gizmoInnerHitRect].forEach(el => {
+    el?.addEventListener("mouseenter", onInnerEdgeHover);
+    el?.addEventListener("mousemove", onInnerEdgeHover);
+    el?.addEventListener("mouseleave", onInnerEdgeLeave);
+    el?.addEventListener("mousedown", startInnerEdgeDrag);
+  });
+
   window.addEventListener("mousemove", (e) => {
     if (!gizmoDragMode) return;
     const rect = stageContainer.getBoundingClientRect();
@@ -1236,16 +1367,45 @@
       CONFIG.gizmoX = THREE.MathUtils.clamp(mx / rect.width, 0.05, 0.95);
       CONFIG.gizmoY = THREE.MathUtils.clamp(my / rect.height, 0.05, 0.95);
       syncGizmoUIAndUniforms();
-    } else if (gizmoDragMode === "inner") {
+    } else if (gizmoDragMode === "outer_edge") {
+      const dx = mx - edgeDragOrigin.cx;
+      const dy = my - edgeDragOrigin.cy;
+      const currDist = Math.max(10, Math.hypot(dx, dy));
+      const scale = currDist / edgeDragOrigin.initDist;
+      const isLocked1to1 = CONFIG.gizmoShape === "circle" || CONFIG.gizmoShape === "square";
+
+      if (isLocked1to1 || e.shiftKey) {
+        const newR = THREE.MathUtils.clamp(edgeDragOrigin.startRx * scale, 30, 850);
+        CONFIG.gizmoRx = newR;
+        CONFIG.gizmoRy = newR;
+      } else {
+        CONFIG.gizmoRx = THREE.MathUtils.clamp(edgeDragOrigin.startRx * scale, 30, 850);
+        CONFIG.gizmoRy = THREE.MathUtils.clamp(edgeDragOrigin.startRy * scale, 30, 850);
+      }
+      if (gizmoTransformBadge) {
+        gizmoTransformBadge.classList.remove("hidden", "inner-badge");
+        if (gizmoTransformText) gizmoTransformText.textContent = `${Math.round(CONFIG.gizmoRx)}×${Math.round(CONFIG.gizmoRy)}px`;
+        gizmoTransformBadge.style.left = `${mx}px`;
+        gizmoTransformBadge.style.top = `${my}px`;
+      }
+      syncGizmoUIAndUniforms();
+    } else if (gizmoDragMode === "inner_edge" || gizmoDragMode === "inner") {
       const dx = mx - cx;
       const dy = my - cy;
       const dist = Math.hypot(dx, dy);
       const maxR = Math.max(CONFIG.gizmoRx, 40);
-      CONFIG.gizmoInnerRatio = THREE.MathUtils.clamp(dist / maxR, 0.05, 0.85);
+      CONFIG.gizmoInnerRatio = THREE.MathUtils.clamp(dist / maxR, 0.05, 0.88);
       const ptInnerRatio = document.getElementById("ptInnerRatio");
       if (ptInnerRatio) ptInnerRatio.value = Math.round(CONFIG.gizmoInnerRatio * 100);
       const ptInnerRatioVal = document.getElementById("ptInnerRatioVal");
       if (ptInnerRatioVal) ptInnerRatioVal.textContent = `${Math.round(CONFIG.gizmoInnerRatio * 100)}%`;
+      if (gizmoTransformBadge) {
+        gizmoTransformBadge.classList.remove("hidden");
+        gizmoTransformBadge.classList.add("inner-badge");
+        if (gizmoTransformText) gizmoTransformText.textContent = `Фокус: ${Math.round(CONFIG.gizmoInnerRatio * 100)}%`;
+        gizmoTransformBadge.style.left = `${mx}px`;
+        gizmoTransformBadge.style.top = `${my}px`;
+      }
       syncGizmoUIAndUniforms();
     } else if (gizmoDragMode === "radius") {
       const dx = mx - cx;
@@ -1284,6 +1444,14 @@
 
   window.addEventListener("mouseup", () => {
     gizmoDragMode = null;
+    edgeDragOrigin = null;
+    gizmoCircle.classList.remove("hovered");
+    gizmoRect.classList.remove("hovered");
+    gizmoInnerSafe.classList.remove("hovered");
+    gizmoInnerRect.classList.remove("hovered");
+    if (gizmoTransformBadge) {
+      gizmoTransformBadge.classList.add("hidden");
+    }
   });
 
   /* ================================================================== *
@@ -1384,6 +1552,44 @@
    * 12. Animation Loop & Resize
    * ================================================================== */
 
+  const _boundsPoints = [];
+  const _boundsPtsN = 16;
+  for (let i = 0; i < _boundsPtsN; i++) {
+    const th = (i / _boundsPtsN) * Math.PI * 2;
+    _boundsPoints.push(new THREE.Vector3(Math.sin(th), 0.5, Math.cos(th)));
+    _boundsPoints.push(new THREE.Vector3(Math.sin(th), -0.5, Math.cos(th)));
+  }
+  const _boundsTempP = new THREE.Vector3();
+
+  function updateConstructionBounds() {
+    let minX = 1.0, minY = 1.0, maxX = 0.0, maxY = 0.0;
+    tiltGroup.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+
+    const sH = CONFIG.slideHeight || 340;
+    const rR = ringRadius || 400;
+
+    for (let i = 0; i < _boundsPoints.length; i++) {
+      const pt = _boundsPoints[i];
+      _boundsTempP.set(pt.x * rR, pt.y * sH, pt.z * rR);
+      _boundsTempP.applyMatrix4(tiltGroup.matrixWorld);
+      _boundsTempP.project(camera);
+      const sx = _boundsTempP.x * 0.5 + 0.5;
+      const sy = _boundsTempP.y * 0.5 + 0.5;
+      if (sx < minX) minX = sx;
+      if (sx > maxX) maxX = sx;
+      if (sy < minY) minY = sy;
+      if (sy > maxY) maxY = sy;
+    }
+
+    sharedUniforms.uConstructionBounds.value.set(
+      THREE.MathUtils.clamp(minX, 0.0, 0.95),
+      THREE.MathUtils.clamp(minY, 0.0, 0.95),
+      THREE.MathUtils.clamp(maxX, 0.05, 1.0),
+      THREE.MathUtils.clamp(maxY, 0.05, 1.0)
+    );
+  }
+
   function onResize() {
     const rect = stageContainer.getBoundingClientRect();
     const w = Math.max(1, rect.width);
@@ -1392,6 +1598,7 @@
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     syncGizmoUIAndUniforms();
+    updateConstructionBounds();
   }
 
   window.addEventListener("resize", onResize);
@@ -1414,6 +1621,8 @@
         tiltGroup.rotation.x += vSpeed * dt;
       }
     }
+
+    updateConstructionBounds();
 
     // Dynamic back-to-front renderOrder sorting for smooth alpha dissolve in 3D
     const tempZVec = new THREE.Vector3();
@@ -1791,13 +2000,27 @@
     sharedUniforms.uFadeTop.value = CONFIG.fadeTop ? 1.0 : 0.0;
     sharedUniforms.uFadeBottom.value = CONFIG.fadeBottom ? 1.0 : 0.0;
 
+    const allActive = !!(CONFIG.fadeLeft && CONFIG.fadeRight && CONFIG.fadeTop && CONFIG.fadeBottom);
+
     if (edgePreviewBox) {
       edgePreviewBox.classList.toggle("fade-left", CONFIG.fadeLeft);
       edgePreviewBox.classList.toggle("fade-right", CONFIG.fadeRight);
       edgePreviewBox.classList.toggle("fade-top", CONFIG.fadeTop);
       edgePreviewBox.classList.toggle("fade-bottom", CONFIG.fadeBottom);
+      edgePreviewBox.classList.toggle("all-active", allActive);
     }
   }
+
+  edgePreviewBox?.addEventListener("click", () => {
+    // If all 4 edges are currently checked -> turn all off; otherwise turn all ON
+    const allChecked = chkFadeLeft.checked && chkFadeRight.checked && chkFadeTop.checked && chkFadeBottom.checked;
+    const targetState = !allChecked;
+    chkFadeLeft.checked = targetState;
+    chkFadeRight.checked = targetState;
+    chkFadeTop.checked = targetState;
+    chkFadeBottom.checked = targetState;
+    updateEdgeFadeUniforms();
+  });
 
   chkFadeLeft?.addEventListener("change", updateEdgeFadeUniforms);
   chkFadeRight?.addEventListener("change", updateEdgeFadeUniforms);
