@@ -64,6 +64,36 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
 
+  // --- Upload Custom Media API (/api/upload) ---
+  if (pathname === '/api/upload' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        let base64Data = data.image || '';
+        const ext = data.ext || 'jpg';
+        if (base64Data.includes('base64,')) {
+          base64Data = base64Data.split('base64,')[1];
+        }
+        const buffer = Buffer.from(base64Data, 'base64');
+        const filename = `media_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+        const uploadDir = path.resolve(BASE_DIR, 'uploads');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        fs.writeFileSync(path.resolve(uploadDir, filename), buffer);
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ url: `/btools/uploads/${filename}` }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   // --- REST API: Slider Presets ---
   if (pathname === '/api/slider/presets') {
     if (req.method === 'GET') {

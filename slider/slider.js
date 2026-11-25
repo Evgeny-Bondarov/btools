@@ -353,12 +353,12 @@
       vec3 finalColor = bgColor;
 
       if (uShaderMode == 0) {
-        // ===== MODE 0: THREADS / ВОЛОСЫ (Unwoven Default) =====
-        float coreWidth = mix(0.8, 0.16 + vRandom * 0.12, smoothstep(0.0, 0.85, tear));
-        float threadAlpha = 1.0 - smoothstep(coreWidth - 0.10, coreWidth + 0.06, rim);
-        threadAlpha = mix(1.0, threadAlpha, smoothstep(0.03, 0.30, tear));
+        // ===== MODE 0: THREADS / ВОЛОСЫ (Натуральные шелковые волокна) =====
+        float coreWidth = mix(0.95, 0.03 + vRandom * 0.06, smoothstep(0.08, 0.95, tear));
+        float threadAlpha = 1.0 - smoothstep(coreWidth - 0.08, coreWidth + 0.04, rim);
+        threadAlpha = mix(1.0, threadAlpha, smoothstep(0.02, 0.25, tear));
 
-        float fade = 1.0 - smoothstep(0.75, 1.0, tear) * 0.65;
+        float fade = 1.0 - smoothstep(0.50, 0.96, tear);
         effectAlpha = threadAlpha * fade;
 
         // Sample texture within image bounds
@@ -366,10 +366,8 @@
           finalColor = texture2D(uMap, sampleUv).rgb;
         }
 
-        // Thread physical sheen
-        finalColor *= 1.0 - tear * 0.4 * rim * rim;
-        finalColor += tear * 0.18 * (1.0 - smoothstep(0.0, 0.45, rim));
-        finalColor = mix(finalColor, vec3(1.0), smoothstep(0.55, 1.0, tear) * 0.8);
+        // Объемное затенение между волокнами без искусственного выбеливания
+        finalColor *= 1.0 - tear * 0.35 * rim * rim;
       }
       else if (uShaderMode == 1) {
         // ===== MODE 1: PIXELATION / ПИКСЕЛИ =====
@@ -1159,6 +1157,24 @@
         slide.material.uniforms.uImageAspect.value = slide.imageAspect;
         slide.isCustomImage = true;
         slide.imageSrc = evt.target.result;
+        
+        // Upload image to server for compact storage in presets
+        (async () => {
+          try {
+            const ext = file.name.split('.').pop() || "jpg";
+            const res = await fetch("/api/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: evt.target.result, ext })
+            });
+            const json = await res.json();
+            if (json.url) {
+              slide.imageSrc = json.url;
+            }
+          } catch (e) {
+            console.warn("Upload fallback to memory DataURL:", e);
+          }
+        })();
         
         // If image is vertical / long landing page, anchor to top!
         const cardAspect = cardWidth / cardHeight;

@@ -9,3 +9,4 @@ Thumbs.db
 # Git ignore scratch/temp
 temp/
 tmp/
+uploads/

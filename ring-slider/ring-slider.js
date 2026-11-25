@@ -186,33 +186,42 @@
       float cardAlpha = 1.0 - smoothstep(-1.5, 0.5, sdf);
       if (cardAlpha <= 0.001) discard;
 
-      // 2. Entire Construction Screen-Edge Erase (Left, Right, Top, Bottom)
+      // 2. Entire Construction & Screen-Edge Erase (Left, Right, Top, Bottom)
       vec2 screenUv = gl_FragCoord.xy / uViewportSize;
       float stageFade = 1.0;
 
-      // Visible construction bounds projected onto screen (smoothly clamped)
-      float cMinX = min(uConstructionBounds.x, 0.12);
-      float cMaxX = max(uConstructionBounds.z, 0.88);
-      float cMinY = min(uConstructionBounds.y, 0.18);
-      float cMaxY = max(uConstructionBounds.w, 0.82);
+      // Actual construction bounding box in screen space [0..1]
+      float cMinX = uConstructionBounds.x;
+      float cMaxX = uConstructionBounds.z;
+      float cMinY = uConstructionBounds.y;
+      float cMaxY = uConstructionBounds.w;
 
-      float spanX = max(0.12, cMaxX - cMinX);
-      float spanY = max(0.12, cMaxY - cMinY);
+      float spanX = max(0.04, cMaxX - cMinX);
+      float spanY = max(0.04, cMaxY - cMinY);
 
-      float fadeDistX = max(0.02, uFadeEdgeDepth * spanX);
-      float fadeDistY = max(0.02, uFadeEdgeDepth * spanY);
+      float fadeDistX = max(0.01, uFadeEdgeDepth * spanX);
+      float fadeDistY = max(0.01, uFadeEdgeDepth * spanY);
+      float screenFadeDist = max(0.01, uFadeEdgeDepth);
 
       if (uFadeLeft > 0.5) {
-        stageFade *= smoothstep(cMinX, cMinX + fadeDistX, screenUv.x);
+        float fConstruct = smoothstep(cMinX, cMinX + fadeDistX, screenUv.x);
+        float fScreen = smoothstep(0.0, screenFadeDist, screenUv.x);
+        stageFade *= min(fConstruct, fScreen);
       }
       if (uFadeRight > 0.5) {
-        stageFade *= 1.0 - smoothstep(cMaxX - fadeDistX, cMaxX, screenUv.x);
+        float fConstruct = 1.0 - smoothstep(cMaxX - fadeDistX, cMaxX, screenUv.x);
+        float fScreen = 1.0 - smoothstep(1.0 - screenFadeDist, 1.0, screenUv.x);
+        stageFade *= min(fConstruct, fScreen);
       }
       if (uFadeBottom > 0.5) {
-        stageFade *= smoothstep(cMinY, cMinY + fadeDistY, screenUv.y);
+        float fConstruct = smoothstep(cMinY, cMinY + fadeDistY, screenUv.y);
+        float fScreen = smoothstep(0.0, screenFadeDist, screenUv.y);
+        stageFade *= min(fConstruct, fScreen);
       }
       if (uFadeTop > 0.5) {
-        stageFade *= 1.0 - smoothstep(cMaxY - fadeDistY, cMaxY, screenUv.y);
+        float fConstruct = 1.0 - smoothstep(cMaxY - fadeDistY, cMaxY, screenUv.y);
+        float fScreen = 1.0 - smoothstep(1.0 - screenFadeDist, 1.0, screenUv.y);
+        stageFade *= min(fConstruct, fScreen);
       }
 
       // 3. Casemaker UV Mapping (Cover / Contain + Pan + Zoom)
@@ -296,28 +305,22 @@
         float wave = sin(vUv.x * 12.0 + uTime * 2.5 + rnd * 6.28) * 0.02 * uWobble * tNorm;
         vec2 threadUv = sampleUv + vec2(0.0, wave);
 
-        float coreWidth = mix(0.95, 0.18 + rnd * 0.14, smoothstep(0.0, 0.85, tNorm));
-        float threadAlpha = 1.0 - smoothstep(coreWidth - 0.10, coreWidth + 0.06, rim);
-        threadAlpha = mix(1.0, threadAlpha, smoothstep(0.03, 0.30, tNorm));
+        // Волокна сужаются к кончикам от цельного слайда (0.95) до тонких игл (0.02)
+        float coreWidth = mix(0.95, 0.03 + rnd * 0.06, smoothstep(0.08, 0.95, tNorm));
+        float threadAlpha = 1.0 - smoothstep(coreWidth - 0.08, coreWidth + 0.04, rim);
+        threadAlpha = mix(1.0, threadAlpha, smoothstep(0.02, 0.25, tNorm));
 
         if (threadUv.x >= 0.0 && threadUv.x <= 1.0 && threadUv.y >= 0.0 && threadUv.y <= 1.0) {
           finalColor = texture2D(uMap, threadUv).rgb;
         }
 
-        finalColor *= 1.0 - tNorm * 0.40 * rim * rim;
-        finalColor += tNorm * 0.18 * (1.0 - smoothstep(0.0, 0.45, rim));
+        // Органичное объемное затенение между волокнами (без искусственного выбеливания в белый цвет!)
+        finalColor *= 1.0 - tNorm * 0.35 * rim * rim;
 
-        // Silk thread tip glints (only inside the active effect zone; vanish at fade edge so no white lines remain)
-        float glint = smoothstep(0.55, 1.0, tNorm) * 0.80;
+        // Плавное полное угасание в прозрачность до 0.0 — без белых краев и без резких обрывов
+        float fade = 1.0 - smoothstep(0.50, 0.96, tNorm);
         if (uFadeEnable > 0.5) {
-          glint *= (1.0 - smoothstep(0.80, 1.05, shapeDist));
-        }
-        finalColor = mix(finalColor, vec3(1.0), glint);
-
-        // Erase cleanly to 0.0 when uFadeEnable is on, without leaving ghost lines
-        float fade = 1.0 - smoothstep(0.75, 1.0, tNorm) * 0.65;
-        if (uFadeEnable > 0.5) {
-          float erase = 1.0 - smoothstep(1.0 - 0.25 * uFadeDepth, 1.05, shapeDist);
+          float erase = 1.0 - smoothstep(1.0 - 0.35 * uFadeDepth, 1.02, shapeDist);
           fade *= mix(1.0, erase, uFadeDepth);
         }
         effectAlpha = threadAlpha * fade;
@@ -482,6 +485,8 @@
     uCardSize:       { value: new THREE.Vector2(640, 360) },
     uRadius:         { value: 24.0 }
   };
+
+  window.sharedUniforms = sharedUniforms; // For debug inspection
 
   /* ================================================================== *
    * 4. Texture & Geometry Helpers
@@ -1017,10 +1022,10 @@
 
     const idx = pendingUploadIndex;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const dataUrl = ev.target.result;
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         const s = slidesData[idx];
         s.texture = createTexture(img);
         s.imageAspect = img.naturalWidth / Math.max(1, img.naturalHeight);
@@ -1033,6 +1038,22 @@
         }
         renderSidebarLayers();
         showToast(`Изображение загружено в Слайд ${idx + 1}`);
+
+        // Сохраняем загруженный файл на сервер в uploads/ для компактного хранения в пресетах
+        try {
+          const ext = file.name.split('.').pop() || "jpg";
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataUrl, ext })
+          });
+          const json = await res.json();
+          if (json.url) {
+            s.thumbUrl = json.url;
+          }
+        } catch (e) {
+          console.warn("Upload fallback to memory DataURL:", e);
+        }
       };
       img.src = dataUrl;
     };
@@ -1635,10 +1656,10 @@
     }
 
     sharedUniforms.uConstructionBounds.value.set(
-      THREE.MathUtils.clamp(minX, 0.0, 0.95),
-      THREE.MathUtils.clamp(minY, 0.0, 0.95),
-      THREE.MathUtils.clamp(maxX, 0.05, 1.0),
-      THREE.MathUtils.clamp(maxY, 0.05, 1.0)
+      THREE.MathUtils.clamp(minX, 0.0, 0.98),
+      THREE.MathUtils.clamp(minY, 0.0, 0.98),
+      THREE.MathUtils.clamp(maxX, 0.02, 1.0),
+      THREE.MathUtils.clamp(maxY, 0.02, 1.0)
     );
   }
 
@@ -2516,22 +2537,69 @@
     setMouseDisabled(!!CONFIG.mouseDisabled);
     setEffectMode(CONFIG.effectMode || "none");
     rebuildRing();
+
+    // Восстановление сохраненных слайдов и пользовательских изображений
+    if (Array.isArray(cfg.slides)) {
+      cfg.slides.forEach(savedSlide => {
+        const idx = savedSlide.index;
+        if (idx !== undefined && slidesData[idx]) {
+          const s = slidesData[idx];
+          s.mediaOffset = savedSlide.mediaOffset || { x: 0, y: 0 };
+          s.mediaScale = savedSlide.mediaScale || 1.0;
+          s.fitMode = savedSlide.fitMode || 0;
+          s.isCustom = !!savedSlide.isCustom;
+
+          if (savedSlide.thumbUrl) {
+            s.thumbUrl = savedSlide.thumbUrl;
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+              s.texture = createTexture(img);
+              s.imageAspect = img.naturalWidth / Math.max(1, img.naturalHeight);
+              if (slideMeshes[idx]) {
+                slideMeshes[idx].material.uniforms.uMap.value = s.texture;
+                slideMeshes[idx].material.uniforms.uImageAspect.value = s.imageAspect;
+                slideMeshes[idx].material.uniforms.uMediaOffset.value.set(s.mediaOffset.x, s.mediaOffset.y);
+                slideMeshes[idx].material.uniforms.uMediaScale.value = s.mediaScale;
+                slideMeshes[idx].material.uniforms.uFitMode.value = s.fitMode;
+              }
+              renderSidebarLayers();
+            };
+            img.src = savedSlide.thumbUrl;
+          }
+        }
+      });
+    }
   }
 
   document.getElementById("btnSavePreset").addEventListener("click", async () => {
     const nameInput = document.getElementById("newPresetName");
     const name = nameInput.value.trim() || `Ring Preset (${CONFIG.aspectRatioStr})`;
+
+    const customSlides = slidesData.map(s => ({
+      index: s.index,
+      thumbUrl: s.thumbUrl,
+      isCustom: !!s.isCustom,
+      imageAspect: s.imageAspect,
+      mediaOffset: { x: s.mediaOffset?.x || 0, y: s.mediaOffset?.y || 0 },
+      mediaScale: s.mediaScale || 1.0,
+      fitMode: s.fitMode || 0
+    }));
+
     await fetch("/api/ring-slider/presets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        config: { ...CONFIG }
+        config: {
+          ...CONFIG,
+          slides: customSlides
+        }
       })
     });
     nameInput.value = "";
     loadPresetsList();
-    showToast("Пресет сохранен в базу!");
+    showToast("Пресет сохранен в базу вместе с фото!");
   });
 
   /* ================================================================== *
